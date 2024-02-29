@@ -18,6 +18,12 @@ loom {
 	}
 }
 
+dependencies {
+	implementation(project(path: ":calio", configuration: "namedElements"))
+	implementation(project(path: ":apoli", configuration: "namedElements"))
+	implementation(project(path: ":origins", configuration: "namedElements"))
+}
+
 allprojects {
 	apply plugin: 'fabric-loom'
 
