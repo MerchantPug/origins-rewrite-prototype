@@ -1,0 +1,32 @@
+{
+	"schemaVersion": 1,
+	"id": "origins",
+	"version": "${version}",
+	"name": "Origins",
+	"description": "Prototype for Origins' Rewrite.",
+	"authors": [
+		"MerchantPug",
+		"eggohito"
+	],
+	"contact": {
+		"homepage": "https://github.com/MerchantPug/origins-rewrite-prototype",
+		"sources": "https://github.com/MerchantPug/origins-rewrite-prototype"
+	},
+	"license": "MIT",
+	"icon": "assets/origins/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.github.apace100.origins.Origins"
+		]
+	},
+	"mixins": [
+		"origins.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.15.0",
+		"minecraft": "~1.20.5-",
+		"java": ">=17",
+		"fabric-api": "*"
+	}
+}

@@ -8,3 +8,6 @@ pluginManagement {
 		gradlePluginPortal()
 	}
 }
+
+rootProject.name = "origins-fabric-master"
+include("apoli", "calio", "origins")

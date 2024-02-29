@@ -1,0 +1,16 @@
+plugins {
+    id 'fabric-loom'
+}
+
+version = project.apoli_version
+
+base {
+    archivesName = "apoli"
+}
+
+evaluationDependsOn(":apoli")
+
+dependencies {
+    implementation(project(path: ":apoli", configuration: "namedElements"))
+    include(project(":apoli"))
+}

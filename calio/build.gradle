@@ -1,0 +1,9 @@
+plugins {
+    id 'fabric-loom'
+}
+
+version = project.calio_version
+
+base {
+    archivesName = "calio"
+}
