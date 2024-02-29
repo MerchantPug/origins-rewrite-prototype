@@ -9,5 +9,5 @@ pluginManagement {
 	}
 }
 
-rootProject.name = "origins-fabric-master"
+rootProject.name = "origins-master"
 include("apoli", "calio", "origins")
