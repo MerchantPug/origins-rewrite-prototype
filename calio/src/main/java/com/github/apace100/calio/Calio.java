@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Calio implements ModInitializer {
-	public static final String MOD_ID = "calio";
+	public static final String MODID = "calio";
     public static final Logger LOGGER = LoggerFactory.getLogger("Calio");
 
 	@Override

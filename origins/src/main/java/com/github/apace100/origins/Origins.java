@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Origins implements ModInitializer {
-	public static final String MOD_ID = "origins";
+	public static final String MODID = "origins";
     public static final Logger LOGGER = LoggerFactory.getLogger("Origins");
 
 	@Override
