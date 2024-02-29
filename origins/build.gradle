@@ -5,7 +5,7 @@ plugins {
 version = project.apoli_version
 
 base {
-    archivesName = "apoli"
+    archivesName = "origins"
 }
 
 evaluationDependsOn(":apoli")
