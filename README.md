@@ -29,7 +29,7 @@ Apoli is pretty much the same as before when it comes to what's going to be put 
 ### Origins
 Origins is still the main way users will be able to interface with the other two mods.
 
-The prototype does not implement any base Origin, as this is purely a proof of concept. Instead opting to implement two test Origins that you can switch to and from using the `/origin` command.
+The prototype does not implement any of the base mod's origins, as this is purely a proof of concept. Instead opting to implement two test Origins that you can switch to and from using the `/origin` command.
 
 #### Why is SerializableData no longer a thing?
 Apace did not know about codecs as a system when working on Origins, which lead to a redundant system.
