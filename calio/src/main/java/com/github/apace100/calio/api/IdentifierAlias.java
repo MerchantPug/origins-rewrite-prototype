@@ -1,231 +1,251 @@
 package com.github.apace100.calio.api;
 
 import com.github.apace100.calio.Calio;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-// TODO: Comments for this class. At least I've started on it though :P - Pug
 /**
  *  A utility class for adding aliases to identifiers (or its namespaces and/or paths).
  */
 public class IdentifierAlias {
-    private static final RuntimeException NO_NAMESPACE_ALIAS = new RuntimeException("Tried to resolve a namespace alias for a namespace which didn't have an alias.");
-    private static final RuntimeException NO_PATH_ALIAS = new RuntimeException("Tried to resolve a path alias for a path which didn't have an alias.");
-    private static final RuntimeException NO_ALIAS = new RuntimeException("Tried to resolve an alias for an identifier which didn't have an alias.");
 
-    private static final Map<Optional<RegistryEntry<Registry<?>>>, Map<Identifier, Identifier>> ALIASED_IDENTIFIERS = new HashMap<>();
-    private static final Map<Optional<RegistryEntry<Registry<?>>>, Map<String, String>> ALIASED_NAMESPACES = new HashMap<>();
-    private static final Map<Optional<RegistryEntry<Registry<?>>>, Map<String, String>> ALIASED_PATHS = new HashMap<>();
+    public static final Function<Identifier, RuntimeException> NO_ALIAS_EXCEPTION = id -> new RuntimeException("Tried resolving a non-existing alias for identifier \"" + id + "\"");
+    public static final IdentifierAlias GLOBAL = new IdentifierAlias();
 
-    public enum Priority {
-        IDENTIFIER,
-        NAMESPACE,
-        PATH
-    }
+    private final Map<Identifier, Identifier> identifierAliases = new HashMap<>();
+    private final Map<String, String> namespaceAliases = new HashMap<>();
+    private final Map<String, String> pathAliases = new HashMap<>();
 
     /**
-     * Adds a namespace alias globally.
+     *  Adds an alias to a namespace of an identifier.
      *
-     * @param fromNamespace A namespace to resolve from.
-     * @param toNamespace   The namespace to resolve to.
+     *  @param fromNamespace the alias for the namespace of an identifier
+     *  @param toNamespace   the namespace of an identifier to add an alias to
      */
-    public static void addGlobalNamespaceAlias(String fromNamespace, String toNamespace) {
-        addNamespaceAlias(null, fromNamespace, toNamespace);
-    }
+    public void addNamespaceAlias(String fromNamespace, String toNamespace) {
 
-    /**
-     * Adds a namespace alias for the specified registry, or globally if registry is null.
-     *
-     * @param registry      A registry to create a namespace alias for. If null, this will act on a global level.
-     * @param fromNamespace A namespace to resolve from.
-     * @param toNamespace   The namespace to resolve to.
-     */
-    public static void addNamespaceAlias(@Nullable RegistryEntry<Registry<?>> registry, String fromNamespace, String toNamespace) {
-
-        if (ALIASED_NAMESPACES.containsKey(Optional.ofNullable(registry)) && ALIASED_NAMESPACES.get(Optional.ofNullable(registry)).containsKey(fromNamespace)) {
-            Calio.LOGGER.error("[{}] Cannot add alias \"{}\" to namespace \"{}\" in registry \"{}\", as it already exists!", Calio.MODID, fromNamespace, toNamespace, Optional.ofNullable(registry).map(RegistryEntry::getIdAsString).orElse("global"));
-            return;
+        if (namespaceAliases.containsKey(fromNamespace)) {
+            Calio.LOGGER.error("Couldn't add namespace alias \"{}\", as it's already defined!", fromNamespace);
         }
 
-        ALIASED_NAMESPACES.computeIfAbsent(Optional.ofNullable(registry), opt -> new HashMap<>()).put(fromNamespace, toNamespace);
-
-    }
-
-    /**
-     * Adds a path alias globally.
-     *
-     * @param fromPath  A path to resolve from.
-     * @param toPath    The path to resolve to.
-     */
-    public static void addGlobalPathAlias(String fromPath, String toPath) {
-        addPathAlias(null, fromPath, toPath);
-    }
-
-    /**
-     * Adds a namespace alias for the specified registry, or globally if registry is null.
-     *
-     * @param registry      A registry to create a path alias for. If null, this will act on a global level.
-     * @param fromPath      A path to resolve from.
-     * @param toPath   The path to resolve to.
-     */
-    public static void addPathAlias(@Nullable RegistryEntry<Registry<?>> registry, String fromPath, String toPath) {
-
-        if (ALIASED_PATHS.containsKey(Optional.ofNullable(registry)) && ALIASED_PATHS.get(Optional.ofNullable(registry)).containsKey(fromPath)) {
-            Calio.LOGGER.error("[{}] Cannot add alias \"{}\" to path \"{}\" in registry \"{}\", as it already exists!", Calio.MODID, fromPath, toPath, Optional.ofNullable(registry).map(RegistryEntry::getIdAsString).orElse("global"));
-            return;
+        else {
+            namespaceAliases.put(fromNamespace, toNamespace);
         }
 
-        ALIASED_PATHS.computeIfAbsent(Optional.ofNullable(registry), opt -> new HashMap<>()).put(fromPath, toPath);
-
     }
 
     /**
-     * Adds an identifier alias globally.
+     *  Adds an alias to a path of an identifier.
      *
-     * @param fromId    An identifier to resolve from.
-     * @param toId      The identifier to resolve to.
+     *  @param fromPath the alias for the path of an identifier
+     *  @param toPath   the path of an identifier to add an alias to
      */
-    public static void addGlobalAlias(Identifier fromId, Identifier toId) {
-        addAlias(null, fromId, toId);
-    }
+    public void addPathAlias(String fromPath, String toPath) {
 
-    /**
-     * Adds an identifier alias for the specified registry, or globally if registry is null.
-     *
-     * @param registry  A registry to create an identifier alias for. If null, this will act on a global level.
-     * @param fromId    An identifier to  resolve from.
-     * @param toId      The identifier to resolve to.
-     */
-    public static void addAlias(@Nullable RegistryEntry<Registry<?>> registry, Identifier fromId, Identifier toId) {
-
-        if (identifierHasAlias(registry, fromId)) {
-            Calio.LOGGER.error("[{}] Cannot add alias \"{}\" to identifier \"{}\" in registry \"{}\", as it already exists!", Calio.MODID, fromId, toId, Optional.ofNullable(registry).map(RegistryEntry::getIdAsString).orElse("global"));
-            return;
+        if (namespaceAliases.containsKey(fromPath)) {
+            Calio.LOGGER.error("Couldn't add namespace alias \"{}\", as it's already defined!", fromPath);
         }
 
-        ALIASED_IDENTIFIERS.computeIfAbsent(Optional.ofNullable(registry), opt -> new HashMap<>()).put(fromId, toId);
+        else {
+            pathAliases.put(fromPath, toPath);
+        }
 
     }
 
-    public static boolean identifierHasAlias(RegistryEntry<Registry<?>> registry, Identifier id) {
-        Optional<RegistryEntry<Registry<?>>> global = Optional.empty();
-        Optional<RegistryEntry<Registry<?>>> optionalRegistry = Optional.of(registry);
-        return ALIASED_IDENTIFIERS.containsKey(optionalRegistry) && ALIASED_IDENTIFIERS.get(optionalRegistry).containsKey(id)
-                || ALIASED_IDENTIFIERS.containsKey(global) && ALIASED_IDENTIFIERS.get(global).containsKey(id);
+    /**
+     *  Adds an alias to a certain identifier.
+     *
+     *  @param fromId the alias of the identifier
+     *  @param toId   the identifier to add an alias to
+     */
+    public void addAlias(Identifier fromId, Identifier toId) {
+
+        if (identifierAliases.containsKey(fromId)) {
+            Calio.LOGGER.error("Couldn't add identifier alias \"{}\", as it's already defined!", fromId);
+        }
+
+        else {
+            identifierAliases.put(fromId, toId);
+        }
+
     }
 
-    public static boolean namespaceHasAlias(RegistryEntry<Registry<?>> registry, Identifier id) {
-        return namespaceHasAlias(registry, id.getNamespace());
+    /**
+     *  Checks if the specified {@link Identifier id} has an alias.
+     *
+     *  @param id   the {@link Identifier} to check for aliases on
+     *  @return     {@code true} if the specified {@link Identifier id} has an alias
+     */
+    public boolean hasIdentifierAlias(Identifier id) {
+        return identifierAliases.containsKey(id);
     }
 
-    public static boolean namespaceHasAlias(RegistryEntry<Registry<?>> registry, String namespace) {
-        Optional<RegistryEntry<Registry<?>>> global = Optional.empty();
-        Optional<RegistryEntry<Registry<?>>> optionalRegistry = Optional.of(registry);
-        return ALIASED_NAMESPACES.containsKey(optionalRegistry) && ALIASED_NAMESPACES.get(optionalRegistry).containsKey(namespace)
-                || ALIASED_NAMESPACES.containsKey(global) && ALIASED_NAMESPACES.get(global).containsKey(namespace);
+    /**
+     *  Checks if the specified {@link Identifier id}'s namespace has an alias.
+     *
+     *  @param id   the {@link Identifier} to check for aliases on
+     *  @return     {@code true} if the specified {@link Identifier id}'s namespace has an alias
+     */
+    public boolean hasNamespaceAlias(Identifier id) {
+        return namespaceAliases.containsKey(id.getNamespace());
     }
 
-    public static boolean pathHasAlias(RegistryEntry<Registry<?>> registry, Identifier id) {
-        return pathHasAlias(registry, id.getPath());
+    /**
+     *  Checks if the specified {@link Identifier id}'s path has an alias.
+     *
+     *  @param id   the {@link Identifier} to check for aliases on
+     *  @return     {@code true} if the specified {@link Identifier id}'s path has an alias
+     */
+    public boolean hasPathAlias(Identifier id) {
+        return pathAliases.containsKey(id.getPath());
     }
 
-    public static boolean pathHasAlias(RegistryEntry<Registry<?>> registry, String path) {
-        Optional<RegistryEntry<Registry<?>>> global = Optional.empty();
-        Optional<RegistryEntry<Registry<?>>> optionalRegistry = Optional.of(registry);
-        return ALIASED_PATHS.containsKey(optionalRegistry) && ALIASED_PATHS.get(optionalRegistry).containsKey(path)
-                || ALIASED_PATHS.containsKey(global) && ALIASED_PATHS.get(global).containsKey(path);
+    /**
+     *  Checks if the specified {@link Identifier id} has an alias (in general.)
+     *
+     *  @param id   the {@link Identifier} to check for aliases on
+     *  @return     {@code true} if the specified {@link Identifier id} has an alias (in general.)
+     */
+    public boolean hasAlias(Identifier id) {
+        return hasIdentifierAlias(id)
+            || hasNamespaceAlias(id)
+            || hasPathAlias(id);
     }
 
-    public static boolean hasAlias(@Nullable RegistryEntry<Registry<?>> registry, Identifier id) {
-        return identifierHasAlias(registry, id)
-                || (namespaceHasAlias(registry, id) || pathHasAlias(registry, id));
+
+    /**
+     *  <p>Attempts to resolve the aliases for the specified {@link Identifier id} until {@link Predicate<Identifier> resolvedPredicate} evaluates
+     *  to {@code true}. All of the {@link Resolver resolvers} (ordered naturally) will be used.</p>
+     *
+     *  @param id                   the {@link Identifier} to resolve the aliases of
+     *  @param resolvedPredicate    the condition which determines if the aliases of the {@link Identifier id} has been successfully resolved
+     *
+     *  @return                     the resolved {@link Identifier}, or the passed {@link Identifier id} if it has no aliases
+     */
+    public Identifier resolveAliasUntil(Identifier id, Predicate<Identifier> resolvedPredicate) {
+        return resolveAliasUntil(id, resolvedPredicate, Resolver.values());
     }
 
-    private static Identifier resolveIdentifierAlias(RegistryEntry<Registry<?>> registry, Identifier id) {
-        if (!namespaceHasAlias(registry, id)) {
-            throw NO_ALIAS;
-        } else {
-            Optional<RegistryEntry<Registry<?>>> global = Optional.empty();
-            if (ALIASED_IDENTIFIERS.containsKey(global) && ALIASED_IDENTIFIERS.get(global).containsKey(id)) {
-                return ALIASED_IDENTIFIERS.get(global).get(id);
+    /**
+     *  <p>Attempts to resolve the aliases for the specified {@link Identifier id} until {@link Predicate<Identifier> resolvedPredicate} evaluates
+     *  to {@code true} with the specified {@link Resolver resolvers}.</p>
+     *
+     *  @param id                   the {@link Identifier} to resolve the aliases of
+     *  @param resolvedPredicate    the condition which determines if the aliases of the {@link Identifier id} has been successfully resolved
+     *  @param resolvers            the {@link Resolver resolvers} to use for resolving the aliases of the {@link Identifier id} (non-strict)
+     *
+     *  @return                     the resolved {@link Identifier}, or the passed {@link Identifier id} if it has no aliases
+     */
+    public Identifier resolveAliasUntil(Identifier id, Predicate<Identifier> resolvedPredicate, Resolver... resolvers) {
+
+        if (!hasAlias(id)) {
+            return id;
+        }
+
+        Identifier aliasedId = id;
+        for (Resolver resolver : resolvers) {
+
+            aliasedId = resolver.resolve(this, id);
+
+            if (resolvedPredicate.test(aliasedId)) {
+                break;
             }
-            return ALIASED_IDENTIFIERS.get(Optional.of(registry)).get(id);
-        }
-    }
 
-    private static Identifier resolveNamespaceAlias(RegistryEntry<Registry<?>> registry, Identifier id) {
-        if (!namespaceHasAlias(registry, id)) {
-            throw NO_NAMESPACE_ALIAS;
-        } else {
-            Optional<RegistryEntry<Registry<?>>> global = Optional.empty();
-            if (ALIASED_NAMESPACES.containsKey(global) && ALIASED_NAMESPACES.get(global).containsKey(id.getNamespace())) {
-                return new Identifier(ALIASED_NAMESPACES.get(global).get(id.getNamespace()), id.getPath());
-            }
-            return new Identifier(ALIASED_NAMESPACES.get(Optional.of(registry)).get(id.getNamespace()), id.getPath());
-        }
-    }
-
-    private static Identifier resolvePathAlias(RegistryEntry<Registry<?>> registry, Identifier id) {
-        if (!pathHasAlias(registry, id)) {
-            throw NO_PATH_ALIAS;
-        } else {
-            Optional<RegistryEntry<Registry<?>>> global = Optional.empty();
-            if (ALIASED_PATHS.containsKey(global) && ALIASED_PATHS.get(global).containsKey(id.getPath())) {
-                return new Identifier(id.getNamespace(), ALIASED_PATHS.get(global).get(id.getPath()));
-            }
-            return new Identifier(id.getNamespace(), ALIASED_PATHS.get(Optional.of(registry)).get(id.getPath()));
-        }
-    }
-
-    public static Identifier resolveAlias(RegistryEntry<Registry<?>> registry, Identifier id) {
-        return resolveAlias(registry, id, null);
-    }
-
-    /**
-     * Resolves an alias for the specified identifier within the specified registry.
-     *
-     * @param registry          A registry linked to rhe resolution.
-     * @param id                An identifier to resolve.
-     * @param specifiedPriority A specified priority to prioritise first,
-     *                          will prioritise in the enum order if null.
-     * @return                  The resolved identifier, or the original if a resolution could
-     *                          not be found.
-     */
-    public static Identifier resolveAlias(RegistryEntry<Registry<?>> registry, Identifier id, @Nullable Priority specifiedPriority) {
-
-        Identifier aliasedId = new Identifier(id.getNamespace(), id.getPath());
-        List<Priority> priorities = Arrays.stream(Priority.values())
-                .sorted(Enum::compareTo)
-                .collect(Collectors.toCollection(LinkedList::new));
-
-        if (specifiedPriority != null) {
-            priorities.remove(specifiedPriority);
-            aliasedId = resolve(registry, aliasedId, specifiedPriority);
-        }
-
-        for (Priority priority : priorities) {
-            aliasedId = resolve(registry, aliasedId, priority);
         }
 
         return aliasedId;
 
     }
 
-    private static Identifier resolve(RegistryEntry<Registry<?>> registry, Identifier id, Priority priority) {
-        return switch (priority) {
-            case IDENTIFIER -> identifierHasAlias(registry, id) ? resolveIdentifierAlias(registry, id) : id;
-            case NAMESPACE -> namespaceHasAlias(registry, id) ? resolveNamespaceAlias(registry, id) : id;
-            case PATH -> pathHasAlias(registry, id) ? resolvePathAlias(registry, id): id;
-        };
+    /**
+     *  Resolves the identifier alias for the specified {@link Identifier id}.
+     *
+     *  @param id       the {@link Identifier} to resolve the identifier aliases of
+     *  @param strict   determines whether to throw an exception if no aliases are found
+     *
+     *  @return         the resolved {@link Identifier}, or the passed {@link Identifier id} if {@code strict} is {@code false}
+     */
+    public Identifier resolveIdentifierAlias(Identifier id, boolean strict) {
+
+        if (strict && !hasIdentifierAlias(id)) {
+            throw NO_ALIAS_EXCEPTION.apply(id);
+        }
+
+        return identifierAliases.getOrDefault(id, id);
+
     }
+
+    /**
+     *  Resolves the namespace alias for the specified {@link Identifier id}.
+     *
+     *  @param id       the {@link Identifier} to resolve the namespace aliases of
+     *  @param strict   determines whether to throw an exception if no aliases are found
+     *
+     *  @return         the resolved {@link Identifier}, or the passed {@link Identifier id} if {@code strict} is {@code false}
+     */
+    public Identifier resolveNamespaceAlias(Identifier id, boolean strict) {
+
+        if (strict && !hasNamespaceAlias(id)) {
+            throw NO_ALIAS_EXCEPTION.apply(id);
+        }
+
+        String aliasedNamespace = namespaceAliases.getOrDefault(id.getNamespace(), id.getNamespace());
+        return Identifier.of(aliasedNamespace, id.getPath());
+
+    }
+
+    /**
+     *  Resolves the path alias for the specified {@link Identifier id}.
+     *
+     *  @param id       the {@link Identifier} to resolve the path aliases of
+     *  @param strict   determines whether to throw an exception if no aliases are found
+     *
+     *  @return         the resolved {@link Identifier}, or the passed {@link Identifier id} if {@code strict} is {@code false}
+     */
+    public Identifier resolvePathAlias(Identifier id, boolean strict) {
+
+        if (strict && !hasPathAlias(id)) {
+            throw NO_ALIAS_EXCEPTION.apply(id);
+        }
+
+        String aliasedPath = pathAliases.getOrDefault(id.getPath(), id.getPath());
+        return Identifier.of(id.getNamespace(), aliasedPath);
+
+    }
+
+    public enum Resolver {
+
+        NO_OP((aliases, id) ->
+            id),
+        IDENTIFIER((aliases, id)->
+            aliases.resolveIdentifierAlias(id, false)),
+        NAMESPACE((aliases, id) ->
+            aliases.resolveNamespaceAlias(id, false)),
+        PATH((aliases, id) ->
+            aliases.resolvePathAlias(id, false)),
+        NAMESPACE_AND_PATH((aliases, id) -> {
+
+            String aliasedNamespace = aliases.resolveNamespaceAlias(id, false).getNamespace();
+            String aliasedPath = aliases.resolvePathAlias(id, false).getPath();
+
+            return Identifier.of(aliasedNamespace, aliasedPath);
+
+        });
+
+        private final BiFunction<IdentifierAlias, Identifier, Identifier> resolver;
+        Resolver(BiFunction<IdentifierAlias, Identifier, Identifier> resolver) {
+            this.resolver = resolver;
+        }
+
+        private Identifier resolve(IdentifierAlias aliases, Identifier id) {
+            return resolver.apply(aliases, id);
+        }
+
+    }
+
 }
