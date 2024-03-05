@@ -1,5 +1,6 @@
 package com.github.apace100.origins;
 
+import com.github.apace100.calio.api.IdentifierAlias;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ public class Origins implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		IdentifierAlias.GLOBAL.addNamespaceAlias("origins", "apoli");
 		LOGGER.info("Origins loaded!");
 	}
 }
