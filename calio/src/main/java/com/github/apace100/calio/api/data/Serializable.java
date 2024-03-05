@@ -28,20 +28,14 @@ public interface Serializable<T> {
     }
 
     static <T extends Serializable.Serializer<?>> Codec<T> registryCodec(@NotNull Registry<T> registry, @NotNull IdentifierAlias aliases) {
-        return registryCodec(registry, aliases, new IdentifierAlias.Resolver[] {});
-    }
-
-    static <T extends Serializable.Serializer<?>> Codec<T> registryCodec(@NotNull Registry<T> registry, @NotNull IdentifierAlias aliases, IdentifierAlias.Resolver... resolvers) {
 
         RegistryKey<? extends Registry<T>> registryKey = registry.getKey();
-        IdentifierAlias.Resolver[] finalResolvers = resolvers.length == 0
-            ? IdentifierAlias.Resolver.values()
-            : resolvers;
+        IdentifierAlias.Resolver[] resolvers = IdentifierAlias.Resolver.values();
 
         return Codecs.withLifecycle(
             Identifier.CODEC.comapFlatMap(
-                id -> registry.getEntry(aliases.resolveAliasUntil(id, registry::containsId, finalResolvers))
-                    .or(() -> registry.getEntry(IdentifierAlias.GLOBAL.resolveAliasUntil(id, registry::containsId, finalResolvers)))
+                id -> registry.getEntry(aliases.resolveAliasUntil(id, registry::containsId, resolvers))
+                    .or(() -> registry.getEntry(IdentifierAlias.GLOBAL.resolveAliasUntil(id, registry::containsId, resolvers)))
                     .map(DataResult::success)
                     .orElseGet(() -> DataResult.error(() -> "Type \"" + id + "\" is not registered in registry \"" + registryKey.getValue() + "\"")),
                 entry ->
