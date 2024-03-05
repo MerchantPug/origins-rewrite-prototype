@@ -11,6 +11,7 @@ base {
 evaluationDependsOn(":apoli")
 
 dependencies {
+    implementation(project(path: ":calio", configuration: "namedElements"))
     implementation(project(path: ":apoli", configuration: "namedElements"))
     include(project(":apoli"))
 }
