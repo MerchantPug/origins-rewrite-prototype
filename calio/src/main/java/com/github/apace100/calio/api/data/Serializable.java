@@ -12,6 +12,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.dynamic.Codecs;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Set;
+
 /**
  *  <p>An interface used for dispatching a {@link Codec codec} to (de)serialize the instance of the implementing class. This is mostly used
  *  for serializable objects in registries (e.g: objects from a {@link net.fabricmc.fabric.api.event.registry.DynamicRegistries dynamic registry}.)
@@ -47,8 +49,19 @@ public interface Serializable<T> {
         ).flatComapMap(
             RegistryEntry.Reference::value,
             value -> registry.getEntry(value) instanceof RegistryEntry.Reference<T> reference
-                ? DataResult.success(reference)
-                : DataResult.error(() -> "Element \"" + value + "\" is not registered in registry \"" + registryKey.getValue() + "\"")
+                    ? DataResult.success(reference)
+                    : DataResult.error(() -> "Element \"" + value + "\" is not registered in registry \"" + registryKey.getValue() + "\"")
+        );
+
+    }
+
+    static <T extends Serializable.Serializer<?>> Codec<T> valueDisallowingRegistryCodec(@NotNull Registry<T> registry, @NotNull IdentifierAlias aliases, Set<Identifier> disallowedValues) {
+
+        return registryCodec(registry, aliases).flatComapMap(
+                t -> t,
+                value -> !disallowedValues.contains(registry.getId(value))
+                        ? DataResult.success(value)
+                        : DataResult.error(() -> "Element \"" + value + "\" is not allowed within this context.")
         );
 
     }

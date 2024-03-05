@@ -16,13 +16,6 @@ public abstract class PowerType implements Serializable<PowerType> {
         .registryCodec(ApoliRegistries.POWER_TYPE, PowerTypes.ALIASES)
         .dispatchMap("type", Serializable::getSerializer, Serializer::getCodec);
 
-    public static final MapCodec<PowerType> MULTIPLE_DISALLOWING_DISPATCH_CODEC = DISPATCH_CODEC.flatXmap(powerType -> {
-        if (powerType instanceof MultiplePowerType) {
-            return DataResult.error(() -> "The multiple power type is not allowed within this context.");
-        }
-        return DataResult.success(powerType);
-    }, DataResult::success);
-
     private LivingEntity holder;
     private Power power;
 

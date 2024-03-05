@@ -1,5 +1,6 @@
 package com.github.apace100.apoli.power;
 
+import com.github.apace100.apoli.power.type.MultiplePowerType;
 import com.github.apace100.apoli.power.type.PowerType;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -11,7 +12,7 @@ import net.minecraft.util.dynamic.Codecs;
 public class SubPower extends Power {
 
     public static final Codec<SubPower> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-        PowerType.MULTIPLE_DISALLOWING_DISPATCH_CODEC.forGetter(Power::getType),
+        MultiplePowerType.MULTIPLE_DISALLOWING_DISPATCH_CODEC.forGetter(Power::getType),
         Identifier.CODEC.fieldOf("id").forGetter(SubPower::getId),
         Codecs.createStrictOptionalFieldCodec(TextCodecs.CODEC, "name", Text.empty()).forGetter(Power::getName),
         Codecs.createStrictOptionalFieldCodec(TextCodecs.CODEC, "description", Text.empty()).forGetter(Power::getDescription)
