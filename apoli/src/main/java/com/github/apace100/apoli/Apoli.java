@@ -7,6 +7,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.CommonLifecycleEvents;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.minecraft.registry.Registry;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,10 @@ public class Apoli implements ModInitializer {
 
 		LOGGER.info("Apoli loaded!");
 
+	}
+
+	public static Identifier identifier(String path) {
+		return new Identifier(Apoli.MODID, path);
 	}
 
 }
