@@ -30,6 +30,7 @@ public class Apoli implements ModInitializer {
 			Registry<Power> powerRegistry = registries.get(ApoliRegistryKeys.POWER);
 
 			if (powerRegistry != null) {
+				LOGGER.info("Loaded " + powerRegistry.stream().count() + " powers");
 				LOGGER.info("Loaded " + powerRegistry.streamTags().count() + " power tags");
 			}
 
