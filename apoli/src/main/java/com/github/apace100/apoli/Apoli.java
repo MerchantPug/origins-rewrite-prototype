@@ -23,10 +23,14 @@ public class Apoli implements ModInitializer {
 
 		CommonLifecycleEvents.TAGS_LOADED.register((registries, client) -> {
 
+			if (client) {
+				return;
+			}
+
 			Registry<Power> powerRegistry = registries.get(ApoliRegistryKeys.POWER);
 
 			if (powerRegistry != null) {
-				LOGGER.info("Loaded " + powerRegistry.streamTags().count() + "power tags");
+				LOGGER.info("Loaded " + powerRegistry.streamTags().count() + " power tags");
 			}
 
 		});
