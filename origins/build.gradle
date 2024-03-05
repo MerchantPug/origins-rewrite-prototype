@@ -2,7 +2,7 @@ plugins {
     id 'fabric-loom'
 }
 
-version = project.apoli_version
+version = project.origins_version
 
 base {
     archivesName = "origins"
