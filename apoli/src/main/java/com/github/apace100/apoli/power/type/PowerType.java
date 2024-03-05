@@ -3,6 +3,7 @@ package com.github.apace100.apoli.power.type;
 import com.github.apace100.apoli.power.Power;
 import com.github.apace100.apoli.registry.ApoliRegistries;
 import com.github.apace100.calio.api.data.Serializable;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -14,6 +15,13 @@ public abstract class PowerType implements Serializable<PowerType> {
     public static final MapCodec<PowerType> DISPATCH_CODEC = Serializable
         .registryCodec(ApoliRegistries.POWER_TYPE, PowerTypes.ALIASES)
         .dispatchMap("type", Serializable::getSerializer, Serializer::getCodec);
+
+    public static final MapCodec<PowerType> MULTIPLE_DISALLOWING_DISPATCH_CODEC = DISPATCH_CODEC.flatXmap(powerType -> {
+        if (powerType instanceof MultiplePowerType) {
+            return DataResult.error(() -> "The multiple power type is not allowed within this context.");
+        }
+        return DataResult.success(powerType);
+    }, DataResult::success);
 
     private LivingEntity holder;
     private Power power;
