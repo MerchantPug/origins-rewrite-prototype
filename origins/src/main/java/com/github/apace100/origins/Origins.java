@@ -19,7 +19,7 @@ public class Origins implements ModInitializer {
 	}
 
 	public static Identifier identifier(String path) {
-		return new Identifier(Calio.MODID, path);
+		return new Identifier(Origins.MODID, path);
 	}
 
 }
