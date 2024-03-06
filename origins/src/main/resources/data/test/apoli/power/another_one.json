@@ -1,0 +1,13 @@
+{
+    "type": "apoli:multiple",
+    "subpowers": [
+        {
+            "type": "apoli:simple",
+            "id": "test:daniel"
+        },
+        {
+            "type": "apoli:shrimple",
+            "id": "test:the_cooler_daniel"
+        }
+    ]
+}
