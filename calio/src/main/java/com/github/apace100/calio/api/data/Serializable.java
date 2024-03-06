@@ -34,7 +34,6 @@ public interface Serializable<T> {
         return Codecs.withLifecycle(
             Identifier.CODEC.comapFlatMap(
                 id -> registry.getEntry(aliases.resolveAliasUntil(id, registry::containsId))
-                    .or(() -> registry.getEntry(IdentifierAlias.GLOBAL.resolveAliasUntil(id, registry::containsId)))
                     .map(DataResult::success)
                     .orElseGet(() -> DataResult.error(() -> "Type \"" + id + "\" is not registered in registry \"" + registryKey.getValue() + "\"")),
                 entry ->

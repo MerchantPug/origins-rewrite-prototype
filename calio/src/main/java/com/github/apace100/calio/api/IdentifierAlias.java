@@ -15,11 +15,10 @@ import java.util.function.Predicate;
 public class IdentifierAlias {
 
     public static final Function<Identifier, RuntimeException> NO_ALIAS_EXCEPTION = id -> new RuntimeException("Tried resolving a non-existing alias for identifier \"" + id + "\"");
-    public static final IdentifierAlias GLOBAL = new IdentifierAlias();
 
-    private final Map<Identifier, Identifier> identifierAliases = new HashMap<>();
-    private final Map<String, String> namespaceAliases = new HashMap<>();
-    private final Map<String, String> pathAliases = new HashMap<>();
+    protected final Map<Identifier, Identifier> identifierAliases = new HashMap<>();
+    protected final Map<String, String> namespaceAliases = new HashMap<>();
+    protected final Map<String, String> pathAliases = new HashMap<>();
 
     /**
      *  Adds an alias to a namespace of an identifier.
@@ -82,7 +81,8 @@ public class IdentifierAlias {
      *  @return     {@code true} if the specified {@link Identifier id} has an alias
      */
     public boolean hasIdentifierAlias(Identifier id) {
-        return identifierAliases.containsKey(id);
+        return identifierAliases.containsKey(id)
+            || GlobalIdentifierAlias.INSTANCE.hasIdentifierAlias(id);
     }
 
     /**
@@ -92,7 +92,8 @@ public class IdentifierAlias {
      *  @return     {@code true} if the specified {@link Identifier id}'s namespace has an alias
      */
     public boolean hasNamespaceAlias(Identifier id) {
-        return namespaceAliases.containsKey(id.getNamespace());
+        return namespaceAliases.containsKey(id.getNamespace())
+            || GlobalIdentifierAlias.INSTANCE.hasNamespaceAlias(id);
     }
 
     /**
@@ -102,7 +103,8 @@ public class IdentifierAlias {
      *  @return     {@code true} if the specified {@link Identifier id}'s path has an alias
      */
     public boolean hasPathAlias(Identifier id) {
-        return pathAliases.containsKey(id.getPath());
+        return pathAliases.containsKey(id.getPath())
+            || GlobalIdentifierAlias.INSTANCE.hasPathAlias(id);
     }
 
     /**
@@ -163,7 +165,7 @@ public class IdentifierAlias {
             throw NO_ALIAS_EXCEPTION.apply(id);
         }
 
-        return identifierAliases.getOrDefault(id, id);
+        return identifierAliases.getOrDefault(id, GlobalIdentifierAlias.INSTANCE.resolveIdentifierAlias(id, strict));
 
     }
 
@@ -181,7 +183,12 @@ public class IdentifierAlias {
             throw NO_ALIAS_EXCEPTION.apply(id);
         }
 
-        String aliasedNamespace = namespaceAliases.getOrDefault(id.getNamespace(), id.getNamespace());
+        String namespace = id.getNamespace();
+        String aliasedNamespace = namespaceAliases.getOrDefault(
+            namespace,
+            GlobalIdentifierAlias.INSTANCE.resolveNamespaceAlias(id, strict).getNamespace()
+        );
+
         return Identifier.of(aliasedNamespace, id.getPath());
 
     }
@@ -200,7 +207,12 @@ public class IdentifierAlias {
             throw NO_ALIAS_EXCEPTION.apply(id);
         }
 
-        String aliasedPath = pathAliases.getOrDefault(id.getPath(), id.getPath());
+        String path = id.getPath();
+        String aliasedPath = pathAliases.getOrDefault(
+            path,
+            GlobalIdentifierAlias.INSTANCE.resolvePathAlias(id, strict).getPath()
+        );
+
         return Identifier.of(id.getNamespace(), aliasedPath);
 
     }
