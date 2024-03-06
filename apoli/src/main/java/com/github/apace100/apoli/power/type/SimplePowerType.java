@@ -12,14 +12,16 @@ public class SimplePowerType extends PowerType {
         .of(Encoder.empty(), Decoder.unit(SimplePowerType::new))
         .codec();
 
+    public static final Serializer<SimplePowerType> SERIALIZER = () -> CODEC;
+
     @Override
     public Serializer<? extends PowerType> getSerializer() {
-        return () -> CODEC;
+        return SERIALIZER;
     }
 
     public static Factory<SimplePowerType> getFactory() {
         PowerTypes.ALIASES.addPathAlias("shrimple", "simple"); //  FIXME: For testing stuff. Remove when done -eggohito
-        return new Factory<>(Identifier.of("apoli", "simple"), () -> CODEC);
+        return new Factory<>(Identifier.of("apoli", "simple"), SERIALIZER);
     }
 
 }

@@ -22,6 +22,8 @@ public class MultiplePowerType extends PowerType {
         SubPower.CODEC.listOf().fieldOf("subpowers").forGetter(MultiplePowerType::getSubPowers)
     ).apply(instance, MultiplePowerType::new));
 
+    public static final Serializer<MultiplePowerType> SERIALIZER = () -> CODEC;
+
     private final List<SubPower> subPowers;
 
     public MultiplePowerType(List<SubPower> subPowers) {
@@ -30,7 +32,7 @@ public class MultiplePowerType extends PowerType {
 
     @Override
     public Serializer<? extends PowerType> getSerializer() {
-        return () -> CODEC;
+        return SERIALIZER;
     }
 
     public List<SubPower> getSubPowers() {
@@ -38,7 +40,7 @@ public class MultiplePowerType extends PowerType {
     }
 
     public static Factory<MultiplePowerType> getFactory() {
-        return new Factory<>(Identifier.of("apoli","multiple"), () -> CODEC);
+        return new Factory<>(Identifier.of("apoli","multiple"), SERIALIZER);
     }
 
 }
