@@ -117,10 +117,9 @@ public class IdentifierAlias {
             || hasPathAlias(id);
     }
 
-
     /**
      *  <p>Attempts to resolve the aliases for the specified {@link Identifier id} until {@link Predicate<Identifier> resolvedPredicate} evaluates
-     *  to {@code true}. All of the {@link Resolver resolvers} (ordered naturally) will be used.</p>
+     *  to {@code true}.</p>
      *
      *  @param id                   the {@link Identifier} to resolve the aliases of
      *  @param resolvedPredicate    the condition which determines if the aliases of the {@link Identifier id} has been successfully resolved
@@ -128,37 +127,25 @@ public class IdentifierAlias {
      *  @return                     the resolved {@link Identifier}, or the passed {@link Identifier id} if it has no aliases
      */
     public Identifier resolveAliasUntil(Identifier id, Predicate<Identifier> resolvedPredicate) {
-        return resolveAliasUntil(id, resolvedPredicate, Resolver.values());
-    }
-
-    /**
-     *  <p>Attempts to resolve the aliases for the specified {@link Identifier id} until {@link Predicate<Identifier> resolvedPredicate} evaluates
-     *  to {@code true} with the specified {@link Resolver resolvers}.</p>
-     *
-     *  @param id                   the {@link Identifier} to resolve the aliases of
-     *  @param resolvedPredicate    the condition which determines if the aliases of the {@link Identifier id} has been successfully resolved
-     *  @param resolvers            the {@link Resolver resolvers} to use for resolving the aliases of the {@link Identifier id} (non-strict)
-     *
-     *  @return                     the resolved {@link Identifier}, or the passed {@link Identifier id} if it has no aliases
-     */
-    public Identifier resolveAliasUntil(Identifier id, Predicate<Identifier> resolvedPredicate, Resolver... resolvers) {
 
         if (!hasAlias(id)) {
             return id;
         }
 
-        Identifier aliasedId = id;
+        Identifier aliasedId;
+        Resolver[] resolvers = Resolver.values();
+
         for (Resolver resolver : resolvers) {
 
             aliasedId = resolver.resolve(this, id);
 
             if (resolvedPredicate.test(aliasedId)) {
-                break;
+                return aliasedId;
             }
 
         }
 
-        return aliasedId;
+        return id;
 
     }
 
