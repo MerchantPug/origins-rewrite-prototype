@@ -51,12 +51,12 @@ public interface Serializable<T> {
 
     }
 
-    record Factory<T>(Identifier id, Serializer<? extends T> serializer) {
+    record Factory<T>(Identifier id, Serializer<T> serializer) {
 
     }
 
     interface Supplier<T> {
-        Factory<? extends T> getFactory();
+        Factory<T> getFactory();
     }
 
 }

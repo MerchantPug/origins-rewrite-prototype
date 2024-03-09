@@ -9,18 +9,20 @@ public class PowerTypes {
 
     public static final IdentifierAlias ALIASES = new IdentifierAlias();
 
+    public static final Serializable.Serializer<SimplePowerType> SIMPLE = register(SimplePowerType::getFactory);
+    public static final Serializable.Serializer<MultiplePowerType> MULTIPLE = register(MultiplePowerType::getFactory);
+    public static final Serializable.Serializer<ResourcePowerType> RESOURCE = register(ResourcePowerType::getFactory);
+
     public static void register() {
 
         ALIASES.addNamespaceAlias("minecraft", "apoli"); // FIXME: For testing stuff. Remove when done -eggohito
 
-        register(SimplePowerType::getFactory);
-        register(MultiplePowerType::getFactory);
-
     }
 
-    public static void register(Serializable.Supplier<PowerType> supplier) {
-        Serializable.Factory<? extends PowerType> factory = supplier.getFactory();
+    public static <T extends PowerType> Serializable.Serializer<T> register(Serializable.Supplier<T> supplier) {
+        Serializable.Factory<T> factory = supplier.getFactory();
         Registry.register(ApoliRegistries.POWER_TYPE, factory.id(), factory.serializer());
+        return factory.serializer();
     }
 
 }

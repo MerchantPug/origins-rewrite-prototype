@@ -5,6 +5,11 @@ import com.github.apace100.apoli.registry.ApoliRegistryKeys;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.RegistryCodecs;
+import net.minecraft.registry.entry.RegistryElementCodec;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
@@ -20,6 +25,11 @@ public class Power {
         Codec.BOOL.optionalFieldOf("hidden", false).forGetter(Power::isHidden)
     ).apply(instance, Power::new));
 
+    public static final Codec<RegistryEntry<Power>> REGISTRY_CODEC = RegistryElementCodec.of(ApoliRegistryKeys.POWER, CODEC);
+    public static final Codec<RegistryEntryList<Power>> REGISTRY_LIST_CODEC = RegistryCodecs.entryList(ApoliRegistryKeys.POWER, CODEC);
+
+    private boolean initialized = false;
+
     private final PowerType type;
     private final boolean hidden;
 
@@ -33,26 +43,47 @@ public class Power {
         this.hidden = hidden;
     }
 
-    public Power init(LivingEntity holder) {
+    public void init(DynamicRegistryManager registryManager) {
 
-        Identifier id = holder.getWorld().getRegistryManager().get(ApoliRegistryKeys.POWER).getId(this);
-        if (id != null) {
+        if (!initialized) {
+            Identifier id = registryManager.get(ApoliRegistryKeys.POWER).getId(this);
+            if (id != null) {
 
-            String namespace = id.getNamespace();
-            String path = id.getPath();
+                String namespace = id.getNamespace();
+                String path = id.getPath();
 
-            this.name = name.getContent() == PlainTextContent.EMPTY
-                ? Text.translatable("power." + namespace + "." + path + ".name")
-                : name;
-            this.description = description.getContent() == PlainTextContent.EMPTY
-                ? Text.translatable("power." + namespace + "." + path + ".description")
-                : description;
+                this.name = name.getContent() == PlainTextContent.EMPTY
+                        ? Text.translatable("power." + namespace + "." + path + ".name")
+                        : name;
+                this.description = description.getContent() == PlainTextContent.EMPTY
+                        ? Text.translatable("power." + namespace + "." + path + ".description")
+                        : description;
 
+            }
+
+            this.type.init(this);
+            this.initialized = true;
         }
 
-        this.type.init(holder, this);
-        return this;
+    }
+    public void onGained(LivingEntity holder) {
+        this.getType().onGained(holder);
+    }
 
+    public void onLost(LivingEntity holder) {
+        this.getType().onLost(holder);
+    }
+
+    public void commonTick(LivingEntity holder) {
+        this.getType().commonTick(holder);
+    }
+
+    public void serverTick(LivingEntity holder) {
+        this.getType().serverTick(holder);
+    }
+
+    public void clientTick(LivingEntity holder) {
+        this.getType().clientTick(holder);
     }
 
     public PowerType getType() {

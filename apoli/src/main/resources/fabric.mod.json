@@ -18,6 +18,9 @@
 	"entrypoints": {
 		"main": [
 			"com.github.apace100.apoli.Apoli"
+		],
+		"client": [
+			"com.github.apace100.apoli.client.ApoliClient"
 		]
 	},
 	"mixins": [
