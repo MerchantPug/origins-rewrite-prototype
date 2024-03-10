@@ -66,7 +66,7 @@ public class ResourcePowerType extends PowerType implements DataAttachedPowerTyp
         return new Factory<>(Identifier.of("apoli", "resource"), SERIALIZER);
     }
 
-    protected static class ResourcePowerData {
+    public static class ResourcePowerData {
         public static final Codec<ResourcePowerData> CODEC = Codec.INT.xmap(ResourcePowerData::new, ResourcePowerData::getValue);
 
         private int value;
