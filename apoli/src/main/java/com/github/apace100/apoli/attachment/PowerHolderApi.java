@@ -43,9 +43,36 @@ public class PowerHolderApi {
         power.value().onGained(holder);
     }
 
-    public void removePower(RegistryEntry<Power> power, Identifier source) {
-        holder.getAttachedOrCreate(ApoliAttachmentTypes.POWER_HOLDER_ATTACHMENT).removePower(power, source);
+    public void removePower(RegistryEntry<Power> power) {
+        holder.getAttachedOrCreate(ApoliAttachmentTypes.POWER_HOLDER_ATTACHMENT).removePower(power);
         power.value().onLost(holder);
+    }
+
+    public int removeAllPowersFromSource(Identifier source) {
+        List<RegistryEntry<Power>> removed = holder.getAttachedOrCreate(ApoliAttachmentTypes.POWER_HOLDER_ATTACHMENT).removeAllPowersFromSource(source);
+        for (RegistryEntry<Power> power : removed.stream().filter(entry -> !hasPower(entry)).toList()) {
+            power.value().onLost(holder);
+            break;
+        }
+        return removed.size();
+    }
+
+    public void revokePower(RegistryEntry<Power> power, Identifier source) {
+        if (holder.getAttachedOrCreate(ApoliAttachmentTypes.POWER_HOLDER_ATTACHMENT).revokePower(power, source)) {
+            power.value().onLost(holder);
+        }
+    }
+
+    public int clearPowers() {
+        List<RegistryEntry<Power>> cleared = holder.getAttachedOrCreate(ApoliAttachmentTypes.POWER_HOLDER_ATTACHMENT).clearPowers();
+        for (RegistryEntry<Power> power : cleared) {
+            power.value().onLost(holder);
+        }
+        return cleared.size();
+    }
+
+    public List<RegistryEntry<Power>> getPowers(Serializable.Serializer<? extends PowerType> powerType) {
+        return getPowers(powerType, false);
     }
 
     public List<RegistryEntry<Power>> getPowers(Serializable.Serializer<? extends PowerType> powerType, boolean includeInactive) {

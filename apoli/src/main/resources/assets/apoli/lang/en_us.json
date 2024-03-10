@@ -16,7 +16,24 @@
   "commands.apoli.revoke_from_source.success.multiple": "%s entities had the power %s revoked from source %s.",
   "commands.apoli.revoke_from_source.success.single": "Entity %s had the power %s revoked from source %s.",
 
+  "commands.apoli.revoke_all.fail.multiple": "No entity had any power from source %s.",
+  "commands.apoli.revoke_all.fail.single": "Entity %s did not have any power from source %s.",
+  "commands.apoli.revoke_all.success.multiple": "%s entities had %s powers revoked from source %s.",
+  "commands.apoli.revoke_all.success.single": "Entity %s had %s powers revoked from source %s.",
+
+  "commands.apoli.remove.fail.multiple": "No entity had the power %s.",
+  "commands.apoli.remove.fail.single": "Entity %s did not have the power %s.",
+  "commands.apoli.remove.success.multiple": "%s entities had the power %s removed.",
+  "commands.apoli.remove.success.single": "Entity %s had the power %s removed.",
+
   "commands.apoli.list.fail": "Entity %s did not have any powers.",
   "commands.apoli.list.pass": "Entity %s has %s powers: [%s]",
-  "commands.apoli.list.sources": "Sources: [%s]"
+  "commands.apoli.list.sources": "Sources: [%s]",
+
+  "commands.apoli.clear.fail.multiple": "No entity had any power to clear.",
+  "commands.apoli.clear.fail.single": "Entity %s did not have any power to clear.",
+  "commands.apoli.clear.success.multiple": "%s entities had in total %s powers cleared.",
+  "commands.apoli.clear.success.single": "Entity %s had %s powers cleared.",
+
+  "commands.apoli.dump.fail": "Failed to dump power %s."
 }

@@ -43,17 +43,41 @@ public class PowerHolderAttachment {
         powers.computeIfAbsent(power, entry -> new ArrayList<>()).add(source);
     }
 
-    protected void removePower(RegistryEntry<Power> power, Identifier source) {
+    protected void removePower(RegistryEntry<Power> power) {
+        powers.remove(power);
+    }
+
+    protected List<RegistryEntry<Power>> removeAllPowersFromSource(Identifier source) {
+        List<RegistryEntry<Power>> removedPowers = new ArrayList<>();
+
+        for (Map.Entry<RegistryEntry<Power>, List<Identifier>> power : powers.entrySet().stream().filter(entry -> entry.getValue().contains(source)).toList()) {
+            removedPowers.add(power.getKey());
+            if (revokePower(power.getKey(), source)) {
+                powers.remove(power.getKey());
+            }
+        }
+
+        return removedPowers;
+    }
+
+    protected boolean revokePower(RegistryEntry<Power> power, Identifier source) {
+        if (!powers.containsKey(power) || !powers.get(power).contains(source)) {
+            return false;
+        }
         powers.get(power).remove(source);
         if (powers.get(power).isEmpty()) {
             powers.remove(power);
             powerData.remove(power);
+            return true;
         }
+        return false;
     }
 
-    protected void clearPowers() {
+    protected List<RegistryEntry<Power>> clearPowers() {
+        List<RegistryEntry<Power>> cleared = getPowers();
         powers.clear();
         powerData.clear();
+        return cleared;
     }
 
     protected boolean hasPower(RegistryEntry<Power> power) {
