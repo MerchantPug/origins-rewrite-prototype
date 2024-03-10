@@ -33,7 +33,8 @@ public class PowerDataCodec implements Codec<Map<RegistryEntry<Power>, Object>> 
         final HashMap<RegistryEntry<Power>, Object> map = new HashMap<>();
 
         if (!(ops instanceof RegistryOps<T> registryOps) || registryOps.getEntryLookup(ApoliRegistryKeys.POWER).isEmpty()) {
-            return DataResult.error(() -> "PowerDataCodec requires RegistryOps to decode.");
+            Apoli.LOGGER.warn("PowerDataCodec requires RegistryOps to decode.");
+            return DataResult.success(Pair.of(map, input));
         }
 
         RegistryEntryLookup<Power> powerRegistry = registryOps.getEntryLookup(ApoliRegistryKeys.POWER).get();
