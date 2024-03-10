@@ -25,6 +25,11 @@ public class ResourcePowerType extends PowerType implements DataAttachedPowerTyp
     }
 
     @Override
+    public void onGained(LivingEntity holder) {
+        getOrCreatePowerData(holder);
+    }
+
+    @Override
     public Serializer<? extends PowerType> getSerializer() {
         return SERIALIZER;
     }

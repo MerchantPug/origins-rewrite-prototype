@@ -5,53 +5,47 @@ import com.github.apace100.apoli.power.Power;
 import com.github.apace100.apoli.power.codec.PowerDataCodec;
 import com.github.apace100.apoli.power.type.DataAttachedPowerType;
 import com.github.apace100.apoli.power.type.PowerType;
+import com.github.apace100.calio.api.CodecUtil;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.Keyable;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public class PowerHolderAttachment {
 
     public static final Identifier ID = Apoli.identifier("power_holder");
 
-    private final List<RegistryEntry<Power>> powers;
-    private final Map<RegistryEntry<Power>, List<Identifier>> powerSources;
+    private final Map<RegistryEntry<Power>, List<Identifier>> powers;
     private final Map<RegistryEntry<Power>, Object> powerData;
 
     public static final Codec<PowerHolderAttachment> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
-                    Power.REGISTRY_CODEC.listOf().optionalFieldOf("powers", new ArrayList<>()).xmap(entries -> (List<RegistryEntry<Power>>)new ArrayList<>(entries), entries -> entries).forGetter(PowerHolderAttachment::getPowers),
-                    Codec.simpleMap(Power.REGISTRY_CODEC, Identifier.CODEC.listOf().xmap(sources -> (List<Identifier>)new ArrayList<>(sources), sources -> sources), Keyable.forStrings(() -> Stream.of("power", "sources"))).fieldOf("sources").xmap(map -> (Map<RegistryEntry<Power>, List<Identifier>>)new HashMap<>(map), map -> map).forGetter(PowerHolderAttachment::getPowerSources),
-                    PowerDataCodec.INSTANCE.optionalFieldOf("power_data", new HashMap<>()).xmap(map -> (Map<RegistryEntry<Power>, Object>)new HashMap<>(map), map -> map).forGetter(PowerHolderAttachment::getPowerDataMap)
+                    CodecUtil.forgivingMapCodec(Power.REGISTRY_CODEC, CodecUtil.listCodec(Identifier.CODEC, ArrayList::new), s -> Apoli.LOGGER.warn("Could not resolve power id within powers attachment. {}", s), s -> Apoli.LOGGER.warn("Could not resolve power sources within powers attachment. {}", s), LinkedHashMap::new).optionalFieldOf("powers", new LinkedHashMap<>()).forGetter(PowerHolderAttachment::getPowersWithSources),
+                    PowerDataCodec.INSTANCE.optionalFieldOf("data", new HashMap<>()).forGetter(PowerHolderAttachment::getPowerDataMap)
             ).apply(instance, PowerHolderAttachment::new));
 
-    public PowerHolderAttachment(List<RegistryEntry<Power>> powers, Map<RegistryEntry<Power>, List<Identifier>> powerSources, Map<RegistryEntry<Power>, Object> powerData) {
+    public PowerHolderAttachment(Map<RegistryEntry<Power>, List<Identifier>> powers, Map<RegistryEntry<Power>, Object> powerData) {
         this.powers = powers;
-        this.powerSources = powerSources;
         this.powerData = powerData;
     }
 
     protected List<RegistryEntry<Power>> getPowers() {
-        return List.copyOf(powers);
+        return List.copyOf(powers.keySet());
     }
 
     protected void addPower(RegistryEntry<Power> power, Identifier source) {
-        powers.add(power);
-        powerSources.computeIfAbsent(power, entry -> new ArrayList<>()).add(source);
+        powers.computeIfAbsent(power, entry -> new ArrayList<>()).add(source);
     }
 
     protected void removePower(RegistryEntry<Power> power, Identifier source) {
-        powerSources.get(power).remove(source);
-        if (powerSources.get(power).isEmpty()) {
-            powerSources.remove(power);
+        powers.get(power).remove(source);
+        if (powers.get(power).isEmpty()) {
             powers.remove(power);
             powerData.remove(power);
         }
@@ -59,24 +53,23 @@ public class PowerHolderAttachment {
 
     protected void clearPowers() {
         powers.clear();
-        powerSources.clear();
         powerData.clear();
     }
 
     protected boolean hasPower(RegistryEntry<Power> power) {
-        return powers.contains(power);
+        return powers.containsKey(power);
     }
 
     protected boolean hasPower(RegistryEntry<Power> power, Identifier source) {
-        return powers.contains(power) && powerSources.containsKey(power) && powerSources.get(power).contains(source);
+        return powers.containsKey(power) && powers.get(power).contains(source);
     }
 
     protected List<Identifier> getSources(RegistryEntry<Power> power) {
-        return powerSources.getOrDefault(power, List.of());
+        return powers.getOrDefault(power, List.of());
     }
 
-    private Map<RegistryEntry<Power>, List<Identifier>> getPowerSources() {
-        return Map.copyOf(powerSources);
+    private Map<RegistryEntry<Power>, List<Identifier>> getPowersWithSources() {
+        return Map.copyOf(powers);
     }
 
     private Map<RegistryEntry<Power>, Object> getPowerDataMap() {
